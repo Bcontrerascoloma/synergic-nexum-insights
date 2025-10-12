@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { TrendingUp, Package, Clock, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Package, Clock, Award, CheckCircle, AlertTriangle } from 'lucide-react';
 import { KPICard } from '@/components/KPICard';
 import { FilterBar } from '@/components/FilterBar';
 import { useAppStore } from '@/lib/store';
@@ -8,35 +8,28 @@ import {
   calculateOTIF,
   calculateFillRate,
   calculateLeadTime,
-  calculateDSO,
-  calculateStockoutRate,
-  calculateInventoryHealth,
+  calculateAvgQuality,
+  calculateAvgService,
+  calculateCertificationRate,
 } from '@/lib/kpis';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function Overview() {
   const { 
     suppliers, 
     orders, 
-    inventory, 
-    payments, 
-    consumerEvents,
     setSuppliers, 
-    setOrders, 
-    setInventory, 
-    setPayments,
-    setConsumerEvents,
+    setOrders,
+    setClientSites,
   } = useAppStore();
 
   const loadDemo = () => {
     const data = loadDemoData();
     setSuppliers(data.suppliers);
     setOrders(data.orders);
-    setInventory(data.inventory);
-    setPayments(data.payments);
-    setConsumerEvents(data.consumerEvents);
+    setClientSites(data.clientSites);
   };
 
   useEffect(() => {
@@ -48,9 +41,9 @@ export default function Overview() {
   const otif = calculateOTIF(orders);
   const fillRate = calculateFillRate(orders);
   const leadTime = calculateLeadTime(orders);
-  const dso = calculateDSO(payments);
-  const stockoutRate = calculateStockoutRate(consumerEvents);
-  const inventoryHealth = calculateInventoryHealth(inventory);
+  const avgQuality = calculateAvgQuality(suppliers);
+  const avgService = calculateAvgService(suppliers);
+  const certRate = calculateCertificationRate(suppliers);
 
   // Mock data for charts
   const leadTimeData = Array.from({ length: 12 }, (_, i) => ({
@@ -63,13 +56,25 @@ export default function Overview() {
     { name: 'Late or Incomplete', value: 100 - otif, fill: 'hsl(var(--destructive))' },
   ];
 
+  const categoryData = suppliers.reduce((acc, s) => {
+    const existing = acc.find(item => item.name === s.category);
+    if (existing) {
+      existing.value += 1;
+    } else {
+      acc.push({ name: s.category, value: 1 });
+    }
+    return acc;
+  }, [] as { name: string; value: number }[]);
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--muted))'];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard Overview</h1>
           <p className="text-muted-foreground mt-1">
-            Monitoreo en tiempo real de KPIs de supply chain
+            Sistema de selección y gestión de proveedores
           </p>
         </div>
         {orders.length === 0 && (
@@ -96,27 +101,27 @@ export default function Overview() {
             </CardContent>
           </Card>
         )}
-        {stockoutRate > 10 && (
+        {avgQuality < 3.5 && (
           <Card className="border-l-4 border-l-warning rounded-2xl">
             <CardContent className="flex items-center gap-3 p-4">
               <AlertTriangle className="h-5 w-5 text-warning" />
               <div>
-                <p className="font-medium text-foreground">Alta tasa de quiebres de stock</p>
+                <p className="font-medium text-foreground">Calidad promedio baja</p>
                 <p className="text-sm text-muted-foreground">
-                  Se detectaron {stockoutRate.toFixed(1)}% de eventos con stock agotado
+                  La calidad promedio ({avgQuality.toFixed(2)}/5) requiere atención
                 </p>
               </div>
             </CardContent>
           </Card>
         )}
-        {inventoryHealth > 85 && (
+        {certRate > 80 && (
           <Card className="border-l-4 border-l-success rounded-2xl">
             <CardContent className="flex items-center gap-3 p-4">
               <CheckCircle className="h-5 w-5 text-success" />
               <div>
-                <p className="font-medium text-foreground">Salud de inventario excelente</p>
+                <p className="font-medium text-foreground">Excelente tasa de certificación</p>
                 <p className="text-sm text-muted-foreground">
-                  {inventoryHealth.toFixed(1)}% de los SKUs están por encima del stock de seguridad
+                  {certRate.toFixed(1)}% de los proveedores activos tienen certificaciones
                 </p>
               </div>
             </CardContent>
@@ -151,28 +156,28 @@ export default function Overview() {
           icon={<Clock className="h-5 w-5" />}
         />
         <KPICard
-          title="DSO (Days Sales Outstanding)"
-          value={dso}
-          unit="días"
-          delta={3.2}
-          status={dso <= 30 ? 'success' : dso <= 45 ? 'warning' : 'danger'}
-          icon={<CreditCard className="h-5 w-5" />}
+          title="Calidad Promedio"
+          value={avgQuality}
+          unit="/5"
+          delta={0.2}
+          status={avgQuality >= 4 ? 'success' : avgQuality >= 3.5 ? 'warning' : 'danger'}
+          icon={<Award className="h-5 w-5" />}
         />
         <KPICard
-          title="Tasa de Quiebres"
-          value={stockoutRate}
-          unit="%"
-          delta={-1.2}
-          status={stockoutRate <= 5 ? 'success' : stockoutRate <= 10 ? 'warning' : 'danger'}
-          icon={<AlertTriangle className="h-5 w-5" />}
+          title="Servicio Promedio"
+          value={avgService}
+          unit="/5"
+          delta={0.3}
+          status={avgService >= 4 ? 'success' : avgService >= 3.5 ? 'warning' : 'danger'}
+          icon={<Award className="h-5 w-5" />}
         />
         <KPICard
-          title="Salud de Inventario"
-          value={inventoryHealth}
+          title="Tasa de Certificación"
+          value={certRate}
           unit="%"
           delta={4.1}
-          status={inventoryHealth >= 85 ? 'success' : inventoryHealth >= 70 ? 'warning' : 'danger'}
-          icon={<Package className="h-5 w-5" />}
+          status={certRate >= 80 ? 'success' : certRate >= 60 ? 'warning' : 'danger'}
+          icon={<CheckCircle className="h-5 w-5" />}
         />
       </div>
 
@@ -226,6 +231,39 @@ export default function Overview() {
                 />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl shadow-[var(--shadow-card)]">
+          <CardHeader>
+            <CardTitle>Mix por Categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '0.5rem',
+                  }}
+                />
+              </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

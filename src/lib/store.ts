@@ -1,20 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Supplier, Order, InventoryRecord, Payment, ConsumerEvent, Filters } from './types';
+import type { Supplier, Order, ScoringModel, ClientSite, Filters } from './types';
 
 interface AppState {
   suppliers: Supplier[];
   orders: Order[];
-  inventory: InventoryRecord[];
-  payments: Payment[];
-  consumerEvents: ConsumerEvent[];
+  scoringModels: ScoringModel[];
+  clientSites: ClientSite[];
   filters: Filters;
+  activeModelId: string | null;
   
   setSuppliers: (suppliers: Supplier[]) => void;
   setOrders: (orders: Order[]) => void;
-  setInventory: (inventory: InventoryRecord[]) => void;
-  setPayments: (payments: Payment[]) => void;
-  setConsumerEvents: (events: ConsumerEvent[]) => void;
+  setScoringModels: (models: ScoringModel[]) => void;
+  setClientSites: (sites: ClientSite[]) => void;
+  setActiveModelId: (id: string | null) => void;
   updateFilters: (filters: Partial<Filters>) => void;
   resetFilters: () => void;
 }
@@ -29,16 +29,16 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       suppliers: [],
       orders: [],
-      inventory: [],
-      payments: [],
-      consumerEvents: [],
+      scoringModels: [],
+      clientSites: [],
       filters: defaultFilters,
+      activeModelId: null,
       
       setSuppliers: (suppliers) => set({ suppliers }),
       setOrders: (orders) => set({ orders }),
-      setInventory: (inventory) => set({ inventory }),
-      setPayments: (payments) => set({ payments }),
-      setConsumerEvents: (events) => set({ consumerEvents: events }),
+      setScoringModels: (models) => set({ scoringModels: models }),
+      setClientSites: (sites) => set({ clientSites: sites }),
+      setActiveModelId: (id) => set({ activeModelId: id }),
       updateFilters: (newFilters) => 
         set((state) => ({ filters: { ...state.filters, ...newFilters } })),
       resetFilters: () => set({ filters: defaultFilters }),

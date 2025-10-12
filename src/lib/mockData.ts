@@ -1,26 +1,54 @@
 import { faker } from '@faker-js/faker';
-import type { Supplier, Order, InventoryRecord, Payment, ConsumerEvent } from './types';
+import type { Supplier, Order, ClientSite } from './types';
+import { calculateDistance } from './scoring';
 
-const categories = ['Higiene', 'Alimentos', 'Bebidas', 'Cuidado Personal', 'Limpieza'];
-const sites = ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'San Miguel de Tucumán', 'La Plata', 'Mar del Plata', 'Salta', 'Santa Fe', 'San Juan'];
+const categories = ['Químico', 'Envase', 'Logística', 'Materias Primas', 'Componentes'];
+const regions = ['Los Lagos', 'RM', 'Valparaíso', 'Biobío', 'Maule', 'La Araucanía'];
+const cities = ['Santiago', 'Valparaíso', 'Concepción', 'Puerto Montt', 'Temuco', 'Talca'];
+const certifications = ['ISO 9001', 'ISO 14001', 'RSPO', 'FSC', 'HACCP', 'BRC'];
 const incoterms = ['EXW', 'FOB', 'CIF', 'DDP'];
-const paymentMethods = ['Transferencia', 'Cheque', 'Efectivo', 'Crédito'];
+
+const clientBaseLat = -33.4489; // Santiago, Chile
+const clientBaseLon = -70.6693;
 
 export function generateSuppliers(count: number = 20): Supplier[] {
-  return Array.from({ length: count }, (_, i) => ({
-    supplier_id: `SUP-${String(i + 1).padStart(4, '0')}`,
-    name: faker.company.name(),
-    country: faker.location.country(),
-    category: faker.helpers.arrayElement(categories),
-    certifications: faker.helpers.arrayElements(['ISO 9001', 'ISO 14001', 'HACCP', 'BRC', 'FSSC 22000'], { min: 0, max: 3 }),
-    is_active: faker.datatype.boolean({ probability: 0.9 }),
-    payment_terms_days: faker.helpers.arrayElement([7, 30, 60, 90]),
-    contact_email: faker.internet.email(),
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const lat = faker.location.latitude({ min: -45, max: -18 });
+    const lon = faker.location.longitude({ min: -75, max: -66 });
+    const distance_km = calculateDistance(clientBaseLat, clientBaseLon, lat, lon);
+    
+    return {
+      supplier_id: `SUP-${String(i + 1).padStart(4, '0')}`,
+      name: faker.company.name(),
+      country: 'Chile',
+      region: faker.helpers.arrayElement(regions),
+      city: faker.helpers.arrayElement(cities),
+      lat,
+      lon,
+      distance_km: Math.round(distance_km),
+      category: faker.helpers.arrayElement(categories),
+      certifications: faker.helpers.arrayElements(certifications, { min: 0, max: 3 }),
+      is_active: faker.datatype.boolean({ probability: 0.9 }),
+      lead_time_days: faker.number.int({ min: 7, max: 45 }),
+      lead_time_sigma: faker.number.float({ min: 1, max: 8, multipleOf: 0.1 }),
+      unit_cost: faker.number.float({ min: 50, max: 500, multipleOf: 0.01 }),
+      moq: faker.number.int({ min: 100, max: 5000 }),
+      capacity_units_month: faker.number.int({ min: 5000, max: 50000 }),
+      quality_score_1_5: faker.number.float({ min: 2, max: 5, multipleOf: 0.1 }),
+      service_score_1_5: faker.number.float({ min: 2, max: 5, multipleOf: 0.1 }),
+      sustainability_score_1_5: faker.number.float({ min: 1, max: 5, multipleOf: 0.1 }),
+      otif_pct: faker.number.float({ min: 70, max: 99, multipleOf: 0.1 }),
+      risk_score_1_5: faker.number.float({ min: 1, max: 4, multipleOf: 0.1 }),
+      payment_terms_days: faker.helpers.arrayElement([7, 30, 60, 90]),
+      contact_email: faker.internet.email(),
+      notes: faker.datatype.boolean({ probability: 0.3 }) ? faker.lorem.sentence() : undefined,
+    };
+  });
 }
 
 export function generateOrders(suppliers: Supplier[], count: number = 1000): Order[] {
   const skus = Array.from({ length: 30 }, (_, i) => `SKU-${String(i + 1).padStart(4, '0')}`);
+  const sites = ['Planta Santiago', 'Planta Valparaíso', 'Centro Distribución Sur'];
   const now = new Date();
   
   return Array.from({ length: count }, (_, i) => {
@@ -56,87 +84,25 @@ export function generateOrders(suppliers: Supplier[], count: number = 1000): Ord
   });
 }
 
-export function generateInventory(count: number = 300): InventoryRecord[] {
-  const skus = Array.from({ length: 30 }, (_, i) => `SKU-${String(i + 1).padStart(4, '0')}`);
-  const now = new Date();
-  
-  return Array.from({ length: count }, () => {
-    const dailyDemand = faker.number.int({ min: 10, max: 100 });
-    const safetyStock = dailyDemand * faker.number.int({ min: 5, max: 14 });
-    
-    return {
-      site: faker.helpers.arrayElement(sites),
-      sku: faker.helpers.arrayElement(skus),
-      date: faker.date.between({ 
-        from: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), 
-        to: now 
-      }).toISOString().split('T')[0],
-      on_hand: faker.number.int({ min: 0, max: safetyStock * 3 }),
-      safety_stock: safetyStock,
-      daily_demand: dailyDemand,
-    };
-  });
-}
-
-export function generatePayments(suppliers: Supplier[], count: number = 200): Payment[] {
-  const now = new Date();
-  
-  return Array.from({ length: count }, (_, i) => {
-    const supplier = faker.helpers.arrayElement(suppliers);
-    const invoiceDate = faker.date.between({ 
-      from: new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000), 
-      to: now 
-    });
-    const dueDate = new Date(invoiceDate.getTime() + supplier.payment_terms_days * 24 * 60 * 60 * 1000);
-    const paid = faker.datatype.boolean({ probability: 0.75 });
-    const paidDate = paid 
-      ? new Date(dueDate.getTime() + faker.number.int({ min: -7, max: 30 }) * 24 * 60 * 60 * 1000)
-      : null;
-    
-    return {
-      invoice_id: `INV-${String(i + 1).padStart(6, '0')}`,
-      supplier_id: supplier.supplier_id,
-      invoice_date: invoiceDate.toISOString().split('T')[0],
-      due_date: dueDate.toISOString().split('T')[0],
-      paid_date: paidDate ? paidDate.toISOString().split('T')[0] : null,
-      amount: faker.number.float({ min: 1000, max: 50000, multipleOf: 0.01 }),
-      payment_method: faker.helpers.arrayElement(paymentMethods),
-    };
-  });
-}
-
-export function generateConsumerEvents(count: number = 2000): ConsumerEvent[] {
-  const now = new Date();
-  
+export function generateClientSites(count: number = 3): ClientSite[] {
   return Array.from({ length: count }, (_, i) => ({
-    event_id: `EVT-${String(i + 1).padStart(6, '0')}`,
-    store: faker.helpers.arrayElement(sites),
-    category: faker.helpers.arrayElement(categories),
-    date: faker.date.between({ 
-      from: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000), 
-      to: now 
-    }).toISOString().split('T')[0],
-    stockout_flag: faker.datatype.boolean({ probability: 0.12 }),
-    substitution_flag: faker.datatype.boolean({ probability: 0.20 }),
-    decision_time_sec: faker.number.int({ min: 5, max: 180 }),
-    unit_price_visible_flag: faker.datatype.boolean({ probability: 0.85 }),
-    label_read_time_sec: faker.number.int({ min: 3, max: 45 }),
-    label_clarity_1_5: faker.number.int({ min: 1, max: 5 }),
+    site_id: `SITE-${String(i + 1).padStart(3, '0')}`,
+    name: faker.helpers.arrayElement(['Planta Santiago', 'Planta Valparaíso', 'Centro Distribución Sur']),
+    lat: clientBaseLat + faker.number.float({ min: -1, max: 1, multipleOf: 0.01 }),
+    lon: clientBaseLon + faker.number.float({ min: -1, max: 1, multipleOf: 0.01 }),
+    region: faker.helpers.arrayElement(regions),
+    city: faker.helpers.arrayElement(cities),
   }));
 }
 
 export function loadDemoData() {
   const suppliers = generateSuppliers(20);
   const orders = generateOrders(suppliers, 1000);
-  const inventory = generateInventory(300);
-  const payments = generatePayments(suppliers, 200);
-  const consumerEvents = generateConsumerEvents(2000);
+  const clientSites = generateClientSites(3);
   
   return {
     suppliers,
     orders,
-    inventory,
-    payments,
-    consumerEvents,
+    clientSites,
   };
 }

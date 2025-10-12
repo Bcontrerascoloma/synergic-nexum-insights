@@ -1,4 +1,4 @@
-import type { Order, Payment, ConsumerEvent, InventoryRecord } from './types';
+import type { Order, Supplier } from './types';
 
 export function calculateOTIF(orders: Order[]): number {
   const deliveredOrders = orders.filter(o => o.delivery_date !== null);
@@ -52,54 +52,31 @@ export function calculateLeadTimeVariability(orders: Order[]): number {
   return Math.sqrt(variance);
 }
 
-export function calculateDSO(payments: Payment[]): number {
-  if (payments.length === 0) return 0;
-  
-  const now = new Date();
-  const dsos = payments.map(p => {
-    const invoiceDate = new Date(p.invoice_date);
-    const endDate = p.paid_date ? new Date(p.paid_date) : now;
-    return (endDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24);
-  });
-  
-  return dsos.reduce((sum, dso) => sum + dso, 0) / dsos.length;
+export function calculateAvgQuality(suppliers: Supplier[]): number {
+  if (suppliers.length === 0) return 0;
+  const activeSuppliers = suppliers.filter(s => s.is_active);
+  if (activeSuppliers.length === 0) return 0;
+  return activeSuppliers.reduce((sum, s) => sum + s.quality_score_1_5, 0) / activeSuppliers.length;
 }
 
-export function calculatePaymentPercentage(payments: Payment[], maxDays: number): number {
-  const paidPayments = payments.filter(p => p.paid_date !== null);
-  if (paidPayments.length === 0) return 0;
-  
-  const withinDays = paidPayments.filter(p => {
-    const invoiceDate = new Date(p.invoice_date);
-    const paidDate = new Date(p.paid_date!);
-    const daysDiff = (paidDate.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24);
-    return daysDiff <= maxDays;
-  });
-  
-  return (withinDays.length / paidPayments.length) * 100;
+export function calculateAvgService(suppliers: Supplier[]): number {
+  if (suppliers.length === 0) return 0;
+  const activeSuppliers = suppliers.filter(s => s.is_active);
+  if (activeSuppliers.length === 0) return 0;
+  return activeSuppliers.reduce((sum, s) => sum + s.service_score_1_5, 0) / activeSuppliers.length;
 }
 
-export function calculateStockoutRate(events: ConsumerEvent[]): number {
-  if (events.length === 0) return 0;
-  const stockouts = events.filter(e => e.stockout_flag);
-  return (stockouts.length / events.length) * 100;
+export function calculateAvgSustainability(suppliers: Supplier[]): number {
+  if (suppliers.length === 0) return 0;
+  const activeSuppliers = suppliers.filter(s => s.is_active);
+  if (activeSuppliers.length === 0) return 0;
+  return activeSuppliers.reduce((sum, s) => sum + s.sustainability_score_1_5, 0) / activeSuppliers.length;
 }
 
-export function calculateSubstitutionRate(events: ConsumerEvent[]): number {
-  if (events.length === 0) return 0;
-  const substitutions = events.filter(e => e.substitution_flag);
-  return (substitutions.length / events.length) * 100;
-}
-
-export function calculateMedianDecisionTime(events: ConsumerEvent[]): number {
-  if (events.length === 0) return 0;
-  const times = events.map(e => e.decision_time_sec).sort((a, b) => a - b);
-  const mid = Math.floor(times.length / 2);
-  return times.length % 2 === 0 ? (times[mid - 1] + times[mid]) / 2 : times[mid];
-}
-
-export function calculateInventoryHealth(inventory: InventoryRecord[]): number {
-  if (inventory.length === 0) return 0;
-  const healthy = inventory.filter(i => i.on_hand >= i.safety_stock);
-  return (healthy.length / inventory.length) * 100;
+export function calculateCertificationRate(suppliers: Supplier[]): number {
+  if (suppliers.length === 0) return 0;
+  const activeSuppliers = suppliers.filter(s => s.is_active);
+  if (activeSuppliers.length === 0) return 0;
+  const withCerts = activeSuppliers.filter(s => s.certifications.length > 0);
+  return (withCerts.length / activeSuppliers.length) * 100;
 }

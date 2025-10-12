@@ -6,18 +6,16 @@ import { useAppStore } from '@/lib/store';
 import { toast } from 'sonner';
 
 export default function Uploads() {
-  const { setSuppliers, setOrders, setInventory, setPayments, setConsumerEvents } = useAppStore();
+  const { setSuppliers, setOrders, setClientSites } = useAppStore();
 
   const handleLoadDemo = () => {
     const data = loadDemoData();
     setSuppliers(data.suppliers);
     setOrders(data.orders);
-    setInventory(data.inventory);
-    setPayments(data.payments);
-    setConsumerEvents(data.consumerEvents);
+    setClientSites(data.clientSites);
     
     toast.success('Datos demo cargados exitosamente', {
-      description: `${data.suppliers.length} proveedores, ${data.orders.length} órdenes, ${data.inventory.length} registros de inventario`,
+      description: `${data.suppliers.length} proveedores, ${data.orders.length} órdenes`,
     });
   };
 
@@ -37,7 +35,7 @@ export default function Uploads() {
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
             Genera y carga datos de ejemplo para explorar todas las funcionalidades del dashboard.
-            Incluye proveedores, órdenes, inventario, pagos y eventos de consumidor.
+            Incluye proveedores y órdenes de compra.
           </p>
           <Button onClick={handleLoadDemo} className="w-full bg-primary hover:bg-primary/90">
             <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -67,12 +65,6 @@ export default function Uploads() {
             </Button>
             <Button variant="outline" disabled>
               Cargar Órdenes
-            </Button>
-            <Button variant="outline" disabled>
-              Cargar Inventario
-            </Button>
-            <Button variant="outline" disabled>
-              Cargar Pagos
             </Button>
           </div>
           

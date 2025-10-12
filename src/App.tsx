@@ -8,9 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Overview from "./pages/Overview";
 import Suppliers from "./pages/Suppliers";
 import Orders from "./pages/Orders";
-import Inventory from "./pages/Inventory";
-import Payments from "./pages/Payments";
-import ConsumerInsights from "./pages/ConsumerInsights";
+import Scoring from "./pages/Scoring";
 import Uploads from "./pages/Uploads";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -34,9 +32,7 @@ const AppLayout = () => (
             <Route path="/" element={<Overview />} />
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/consumer-insights" element={<ConsumerInsights />} />
+            <Route path="/scoring" element={<Scoring />} />
             <Route path="/uploads" element={<Uploads />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

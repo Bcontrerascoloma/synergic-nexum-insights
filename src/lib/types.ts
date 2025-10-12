@@ -2,11 +2,27 @@ export interface Supplier {
   supplier_id: string;
   name: string;
   country: string;
+  region: string;
+  city: string;
+  lat?: number;
+  lon?: number;
+  distance_km?: number;
   category: string;
   certifications: string[];
   is_active: boolean;
+  lead_time_days: number;
+  lead_time_sigma: number;
+  unit_cost: number;
+  moq: number;
+  capacity_units_month: number;
+  quality_score_1_5: number;
+  service_score_1_5: number;
+  sustainability_score_1_5: number;
+  otif_pct: number;
+  risk_score_1_5: number;
   payment_terms_days: number;
   contact_email: string;
+  notes?: string;
 }
 
 export interface Order {
@@ -24,36 +40,21 @@ export interface Order {
   site: string;
 }
 
-export interface InventoryRecord {
-  site: string;
-  sku: string;
-  date: string;
-  on_hand: number;
-  safety_stock: number;
-  daily_demand: number;
+export interface ScoringModel {
+  model_id: string;
+  name: string;
+  weights: Record<string, number>;
+  active_kpis: string[];
+  created_at: string;
 }
 
-export interface Payment {
-  invoice_id: string;
-  supplier_id: string;
-  invoice_date: string;
-  due_date: string;
-  paid_date: string | null;
-  amount: number;
-  payment_method: string;
-}
-
-export interface ConsumerEvent {
-  event_id: string;
-  store: string;
-  category: string;
-  date: string;
-  stockout_flag: boolean;
-  substitution_flag: boolean;
-  decision_time_sec: number;
-  unit_price_visible_flag: boolean;
-  label_read_time_sec: number;
-  label_clarity_1_5: number;
+export interface ClientSite {
+  site_id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  region: string;
+  city: string;
 }
 
 export type DateRange = '7d' | '30d' | '90d' | '180d' | 'custom';
@@ -65,6 +66,7 @@ export interface Filters {
   customEndDate?: string;
   category?: string;
   channel: Channel;
-  site?: string;
+  region?: string;
+  country?: string;
   supplier_id?: string;
 }
