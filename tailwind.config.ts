@@ -31,6 +31,14 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -56,6 +64,19 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        nx: {
+          blue: {
+            900: "hsl(var(--nx-blue-900))",
+            700: "hsl(var(--nx-blue-700))",
+            600: "hsl(var(--nx-blue-600))",
+            400: "hsl(var(--nx-blue-400))",
+            100: "hsl(var(--nx-blue-100))",
+          },
+          gray: {
+            700: "hsl(var(--nx-gray-700))",
+            100: "hsl(var(--nx-gray-100))",
+          },
         },
       },
       borderRadius: {
