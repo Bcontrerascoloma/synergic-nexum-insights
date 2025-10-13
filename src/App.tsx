@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+
+// Páginas
 import Overview from "./pages/Overview";
 import Suppliers from "./pages/Suppliers";
 import Orders from "./pages/Orders";
@@ -24,9 +26,12 @@ const AppLayout = () => (
           <SidebarTrigger />
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
-            <span className="font-semibold text-lg text-foreground">Synergic Nexum</span>
+            <span className="font-semibold text-lg text-foreground">
+              Synergic Nexum
+            </span>
           </div>
         </header>
+
         <main className="flex-1 p-6 overflow-auto">
           <Routes>
             <Route path="/" element={<Overview />} />
@@ -35,7 +40,6 @@ const AppLayout = () => (
             <Route path="/scoring" element={<Scoring />} />
             <Route path="/uploads" element={<Uploads />} />
             <Route path="/settings" element={<Settings />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
