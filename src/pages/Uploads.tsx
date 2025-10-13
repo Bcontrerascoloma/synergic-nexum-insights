@@ -1,78 +1,104 @@
-import { Upload, FileSpreadsheet } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loadDemoData } from '@/lib/mockData';
-import { useAppStore } from '@/lib/store';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import { set } from "idb-keyval";
 
 export default function Uploads() {
-  const { setSuppliers, setOrders, setClientSites } = useAppStore();
+  const [fileName, setFileName] = useState("");
+  const [preview, setPreview] = useState<any[]>([]);
+  const [message, setMessage] = useState("");
 
-  const handleLoadDemo = () => {
-    const data = loadDemoData();
-    setSuppliers(data.suppliers);
-    setOrders(data.orders);
-    setClientSites(data.clientSites);
-    
-    toast.success('Datos demo cargados exitosamente', {
-      description: `${data.suppliers.length} proveedores, ${data.orders.length} órdenes`,
-    });
+  // Maneja la carga de archivo
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
+    setMessage("Leyendo archivo...");
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    try {
+      if (ext === "csv") {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            setPreview(results.data.slice(0, 50));
+            set("suppliers", results.data);
+            setMessage(`✅ ${results.data.length} registros cargados y guardados`);
+          },
+          error: (err) => {
+            setMessage(`❌ Error al leer CSV: ${err.message}`);
+          },
+        });
+      } else if (ext === "xlsx") {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        setPreview(jsonData.slice(0, 50));
+        await set("suppliers", jsonData);
+        setMessage(`✅ ${jsonData.length} registros cargados y guardados`);
+      } else {
+        setMessage("❌ Solo se admiten archivos CSV o XLSX");
+      }
+    } catch (err: any) {
+      setMessage(`❌ Error al procesar archivo: ${err.message}`);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Carga de Datos</h1>
-        <p className="text-muted-foreground mt-1">
-          Importa archivos CSV o XLSX para actualizar tus datos
+    <div className="p-6 bg-white rounded-2xl shadow">
+      <h2 className="text-2xl font-semibold mb-4">Importar Archivos</h2>
+
+      <div className="border-2 border-dashed border-blue-400 rounded-2xl p-10 text-center">
+        <input
+          type="file"
+          accept=".csv, .xlsx"
+          onChange={handleFile}
+          className="cursor-pointer text-blue-700"
+        />
+        <p className="text-gray-500 mt-2">
+          Soporta archivos CSV y XLSX (máx. 10 MB)
         </p>
       </div>
 
-      <Card className="rounded-2xl shadow-[var(--shadow-card)]">
-        <CardHeader>
-          <CardTitle>Cargar Datos Demo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Genera y carga datos de ejemplo para explorar todas las funcionalidades del dashboard.
-            Incluye proveedores y órdenes de compra.
-          </p>
-          <Button onClick={handleLoadDemo} className="w-full bg-primary hover:bg-primary/90">
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Cargar Datos Demo
-          </Button>
-        </CardContent>
-      </Card>
+      {fileName && (
+        <p className="mt-4 text-gray-600">
+          📄 Archivo: <b>{fileName}</b>
+        </p>
+      )}
 
-      <Card className="rounded-2xl shadow-[var(--shadow-card)]">
-        <CardHeader>
-          <CardTitle>Importar Archivos</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer">
-            <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-foreground font-medium mb-2">
-              Arrastra archivos aquí o haz clic para seleccionar
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Soporta archivos CSV y XLSX (máximo 10MB)
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button variant="outline" disabled>
-              Cargar Proveedores
-            </Button>
-            <Button variant="outline" disabled>
-              Cargar Órdenes
-            </Button>
-          </div>
-          
-          <p className="text-sm text-muted-foreground text-center">
-            Funcionalidad de carga de archivos en desarrollo
-          </p>
-        </CardContent>
-      </Card>
+      {message && <p className="mt-2 text-sm text-blue-600">{message}</p>}
+
+      {preview.length > 0 && (
+        <div className="mt-6 overflow-auto">
+          <p className="font-semibold mb-2">Vista previa (primeras 50 filas):</p>
+          <table className="w-full text-sm border">
+            <thead>
+              <tr className="bg-blue-100">
+                {Object.keys(preview[0]).map((col) => (
+                  <th key={col} className="border px-2 py-1 text-left">
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {preview.map((row, i) => (
+                <tr key={i}>
+                  {Object.values(row).map((v, j) => (
+                    <td key={j} className="border px-2 py-1">
+                      {String(v)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
