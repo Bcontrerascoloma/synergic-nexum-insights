@@ -1,128 +1,65 @@
-import { useState } from 'react';
-import { Search, Plus, Edit, Trash2, Mail } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from "react";
 
 export default function Suppliers() {
-  const { suppliers } = useAppStore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredSuppliers = suppliers.filter(
-    (supplier) =>
-      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const request = indexedDB.open("keyval-store", 1);
+    request.onsuccess = function () {
+      const db = request.result;
+      const tx = db.transaction("keyval", "readonly");
+      const store = tx.objectStore("keyval");
+      const getReq = store.get("suppliers");
+      getReq.onsuccess = function () {
+        const data = getReq.result || [];
+        console.log("📦 Datos obtenidos desde IndexedDB:", data);
+        setSuppliers(Array.isArray(data) ? data : []);
+        setLoading(false);
+      };
+      getReq.onerror = function () {
+        console.error("❌ Error al leer datos de IndexedDB");
+        setLoading(false);
+      };
+    };
+  }, []);
+
+  if (loading) return <p className="p-6 text-gray-500">Cargando proveedores...</p>;
+
+  if (!suppliers.length) {
+    return (
+      <div className="p-6 text-gray-700">
+        <h2 className="text-2xl font-bold mb-2">Proveedores</h2>
+        <p>No hay datos guardados. Sube un archivo en <b>/uploads</b>.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Proveedores</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestión maestra de proveedores ({suppliers.length} activos)
-          </p>
-        </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Proveedor
-        </Button>
-      </div>
-
-      <Card className="rounded-2xl shadow-[var(--shadow-card)]">
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nombre, país o categoría..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>País</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Certificaciones</TableHead>
-                <TableHead>Términos de Pago</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSuppliers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    No se encontraron proveedores
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSuppliers.map((supplier) => (
-                  <TableRow key={supplier.supplier_id}>
-                    <TableCell className="font-mono text-sm">{supplier.supplier_id}</TableCell>
-                    <TableCell className="font-medium">{supplier.name}</TableCell>
-                    <TableCell>{supplier.country}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{supplier.category}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {supplier.certifications.length > 0 ? (
-                          supplier.certifications.map((cert) => (
-                            <Badge key={cert} variant="secondary" className="text-xs">
-                              {cert}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground text-sm">Sin certificaciones</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{supplier.payment_terms_days} días</TableCell>
-                    <TableCell>
-                      <Badge variant={supplier.is_active ? 'default' : 'secondary'}>
-                        {supplier.is_active ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+    <div className="p-6 bg-white rounded-2xl shadow overflow-auto">
+      <h2 className="text-2xl font-semibold mb-4">Lista de Proveedores</h2>
+      <table className="w-full text-sm border border-gray-300">
+        <thead className="bg-blue-100">
+          <tr>
+            {Object.keys(suppliers[0]).map((key) => (
+              <th key={key} className="border px-3 py-2 text-left text-gray-700 font-medium">
+                {key}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {suppliers.map((row, i) => (
+            <tr key={i} className="hover:bg-blue-50">
+              {Object.values(row).map((v, j) => (
+                <td key={j} className="border px-3 py-1 text-gray-600">
+                  {String(v)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

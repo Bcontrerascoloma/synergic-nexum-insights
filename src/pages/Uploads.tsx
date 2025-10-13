@@ -26,6 +26,7 @@ export default function Uploads() {
           complete: (results) => {
             setPreview(results.data.slice(0, 50));
             set("suppliers", results.data);
+            console.log("✅ Guardado en IndexedDB:", results.data.length, "registros");
             setMessage(`✅ ${results.data.length} registros cargados y guardados`);
           },
           error: (err) => {
@@ -39,6 +40,7 @@ export default function Uploads() {
         const jsonData = XLSX.utils.sheet_to_json(sheet);
         setPreview(jsonData.slice(0, 50));
         await set("suppliers", jsonData);
+        console.log("✅ Guardado en IndexedDB:", jsonData.length, "registros");
         setMessage(`✅ ${jsonData.length} registros cargados y guardados`);
       } else {
         setMessage("❌ Solo se admiten archivos CSV o XLSX");
