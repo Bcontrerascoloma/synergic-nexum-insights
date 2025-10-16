@@ -5,7 +5,9 @@ import { useAppStore } from "@/lib/store";
 import { Supplier } from "@/lib/types";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowRight } from "lucide-react";
+import { ScoringFieldsInfo } from "@/components/ScoringFieldsInfo";
+import { Link } from "react-router-dom";
 
 export default function Uploads() {
   const [fileName, setFileName] = useState("");
@@ -110,14 +112,25 @@ export default function Uploads() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Importar Datos</h1>
           <p className="text-muted-foreground mt-1">
-            Carga proveedores desde CSV o XLSX
+            Carga proveedores desde CSV o XLSX para usar en el sistema de scoring
           </p>
         </div>
-        <Button onClick={loadDemo} variant="outline">
-          <FileSpreadsheet className="h-4 w-4 mr-2" />
-          Cargar Datos Demo
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={loadDemo} variant="outline">
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Cargar Datos Demo
+          </Button>
+          <Link to="/scoring">
+            <Button className="bg-primary hover:bg-primary/90">
+              Ir a Scoring
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Documentación de campos */}
+      <ScoringFieldsInfo />
 
       <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] p-8">
         <div className="border-2 border-dashed border-primary/30 rounded-2xl p-12 text-center hover:border-primary/50 transition-colors">
@@ -182,12 +195,22 @@ export default function Uploads() {
 
       {existingSuppliers.length > 0 && (
         <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] p-6">
-          <h3 className="text-lg font-semibold mb-2 text-foreground">
-            Estado actual
-          </h3>
-          <p className="text-muted-foreground">
-            Hay <span className="font-bold text-primary">{existingSuppliers.length}</span> proveedores en el sistema
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">
+                Estado actual del sistema
+              </h3>
+              <p className="text-muted-foreground">
+                Hay <span className="font-bold text-primary">{existingSuppliers.length}</span> proveedores cargados y listos para scoring
+              </p>
+            </div>
+            <Link to="/scoring">
+              <Button>
+                Ver Ranking
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </div>
       )}
     </div>
