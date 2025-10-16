@@ -17,6 +17,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Dynamic basename: works in preview (/) and production (/synergic-nexum-insights)
+const BASENAME = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+
 const AppLayout = () => (
   <SidebarProvider>
     <div className="flex min-h-screen w-full">
@@ -53,7 +56,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter basename="/synergic-nexum-insights">
+      <BrowserRouter basename={BASENAME}>
         <AppLayout />
       </BrowserRouter>
     </TooltipProvider>

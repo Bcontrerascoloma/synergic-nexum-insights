@@ -15,7 +15,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-
   // 🟦 Base para GitHub Pages — usa el nombre exacto del repositorio:
-  base: "/synergic-nexum-insights/",
+  base: mode === "development" ? "/" : "/synergic-nexum-insights/",
 }));
