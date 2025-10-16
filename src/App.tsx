@@ -53,7 +53,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/synergic-nexum-insights">
         <AppLayout />
       </BrowserRouter>
     </TooltipProvider>
