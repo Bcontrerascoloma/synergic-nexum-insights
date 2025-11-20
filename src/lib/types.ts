@@ -22,6 +22,10 @@ export interface Supplier {
   risk_score_1_5: number;
   payment_terms_days: number;
   contact_email: string;
+  contact_phone?: string;
+  contact_website?: string;
+  contact_responsible?: string;
+  contact_address?: string;
   notes?: string;
 }
 
@@ -38,6 +42,10 @@ export interface Order {
   unit_price: number;
   incoterm: string;
   site: string;
+  description?: string;
+  currency?: string;
+  min_score?: number;
+  status?: 'Pendiente' | 'En Proceso' | 'Entregado' | 'Cancelado';
 }
 
 export interface ScoringModel {

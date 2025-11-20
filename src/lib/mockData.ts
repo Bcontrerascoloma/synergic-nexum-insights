@@ -41,6 +41,10 @@ export function generateSuppliers(count: number = 20): Supplier[] {
       risk_score_1_5: faker.number.float({ min: 1, max: 4, multipleOf: 0.1 }),
       payment_terms_days: faker.helpers.arrayElement([7, 30, 60, 90]),
       contact_email: faker.internet.email(),
+      contact_phone: faker.phone.number(),
+      contact_website: faker.internet.url(),
+      contact_responsible: faker.person.fullName(),
+      contact_address: faker.location.streetAddress({ useFullAddress: true }),
       notes: faker.datatype.boolean({ probability: 0.3 }) ? faker.lorem.sentence() : undefined,
     };
   });
@@ -80,6 +84,9 @@ export function generateOrders(suppliers: Supplier[], count: number = 1000): Ord
       unit_price: faker.number.float({ min: 10, max: 500, multipleOf: 0.01 }),
       incoterm: faker.helpers.arrayElement(incoterms),
       site: faker.helpers.arrayElement(sites),
+      description: faker.commerce.productDescription(),
+      currency: 'USD',
+      status: deliveryDate ? 'Entregado' : 'Pendiente',
     };
   });
 }
