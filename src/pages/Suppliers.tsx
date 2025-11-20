@@ -119,10 +119,10 @@ export default function Suppliers() {
                     <TableCell>
                       <Badge variant="outline">{supplier.category}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{supplier.lead_time_days}d</TableCell>
-                    <TableCell className="text-right">${supplier.unit_cost.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">{supplier.quality_score_1_5.toFixed(1)}/5</TableCell>
-                    <TableCell className="text-right">{supplier.otif_pct.toFixed(1)}%</TableCell>
+                    <TableCell className="text-right">{supplier.lead_time_days ?? '-'}d</TableCell>
+                    <TableCell className="text-right">${supplier.unit_cost?.toFixed(2) ?? '-'}</TableCell>
+                    <TableCell className="text-right">{supplier.quality_score_1_5?.toFixed(1) ?? '-'}/5</TableCell>
+                    <TableCell className="text-right">{supplier.otif_pct?.toFixed(1) ?? '-'}%</TableCell>
                     <TableCell>
                       <Badge variant={supplier.is_active ? "default" : "secondary"}>
                         {supplier.is_active ? "Activo" : "Inactivo"}
