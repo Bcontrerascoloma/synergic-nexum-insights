@@ -59,7 +59,7 @@ export default function Suppliers() {
   const hasActiveFilters = selectedCountries.length > 0 || selectedCategories.length > 0;
 
   const exportCSV = () => {
-    const headers = ['ID', 'Nombre', 'País', 'Región', 'Categoría', 'Lead Time', 'Costo', 'Calidad', 'OTIF %'];
+    const headers = ['ID', 'Nombre', 'País', 'Región', 'Categoría', 'Lead Time', 'Costo', 'Calidad', 'OTIF %', 'Términos Pago', 'Desc. PP %', 'Compliance Fiscal', 'Impacto FC'];
     const rows = filteredSuppliers.map(s => [
       s.supplier_id,
       s.name,
@@ -70,6 +70,10 @@ export default function Suppliers() {
       s.unit_cost,
       s.quality_score_1_5,
       s.otif_pct,
+      s.payment_terms_days,
+      s.early_payment_discount_pct,
+      s.tax_compliance_score_1_5,
+      s.cash_flow_impact_days,
     ]);
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -182,12 +186,15 @@ export default function Suppliers() {
                   <TableHead>ID</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>País</TableHead>
-                  <TableHead>Región</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead className="text-right">Lead Time</TableHead>
                   <TableHead className="text-right">Costo</TableHead>
                   <TableHead className="text-right">Calidad</TableHead>
                   <TableHead className="text-right">OTIF %</TableHead>
+                  <TableHead className="text-right">Térm. Pago</TableHead>
+                  <TableHead className="text-right">Desc. PP</TableHead>
+                  <TableHead className="text-right">Tax Score</TableHead>
+                  <TableHead className="text-right">FC Impact</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Acciones</TableHead>
                 </TableRow>
@@ -198,7 +205,6 @@ export default function Suppliers() {
                     <TableCell className="font-mono text-xs">{supplier.supplier_id}</TableCell>
                     <TableCell className="font-medium">{supplier.name}</TableCell>
                     <TableCell>{supplier.country}</TableCell>
-                    <TableCell>{supplier.region || '-'}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{supplier.category}</Badge>
                     </TableCell>
@@ -206,6 +212,18 @@ export default function Suppliers() {
                     <TableCell className="text-right">${supplier.unit_cost?.toFixed(2) ?? '-'}</TableCell>
                     <TableCell className="text-right">{supplier.quality_score_1_5?.toFixed(1) ?? '-'}/5</TableCell>
                     <TableCell className="text-right">{supplier.otif_pct?.toFixed(1) ?? '-'}%</TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs">{supplier.payment_terms_days ?? '-'}d</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs">{supplier.early_payment_discount_pct?.toFixed(1) ?? '-'}%</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs">{supplier.tax_compliance_score_1_5?.toFixed(1) ?? '-'}/5</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs">{supplier.cash_flow_impact_days ?? '-'}d</span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={supplier.is_active ? "default" : "secondary"}>
                         {supplier.is_active ? "Activo" : "Inactivo"}
