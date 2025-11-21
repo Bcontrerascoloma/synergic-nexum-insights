@@ -148,6 +148,9 @@ export default function Scoring() {
             <Button variant="outline" onClick={() => loadPreset('balanced')}>
               Balanceado
             </Button>
+            <Button variant="outline" onClick={() => loadPreset('cash_flow')}>
+              Flujo de Caja
+            </Button>
           </div>
         </CardContent>
       </Card>

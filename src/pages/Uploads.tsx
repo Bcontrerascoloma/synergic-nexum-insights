@@ -44,6 +44,9 @@ export default function Uploads() {
       otif_pct: parseFloat(row.otif_pct || row.otif) || 0,
       risk_score_1_5: parseFloat(row.risk_score_1_5 || row.riesgo) || 3,
       payment_terms_days: parseFloat(row.payment_terms_days || row.terminos_pago) || 30,
+      early_payment_discount_pct: parseFloat(row.early_payment_discount_pct || row.descuento_pronto_pago) || 0,
+      tax_compliance_score_1_5: parseFloat(row.tax_compliance_score_1_5 || row.compliance_fiscal) || 3,
+      cash_flow_impact_days: parseFloat(row.cash_flow_impact_days || row.impacto_flujo_caja) || 30,
       contact_email: row.contact_email || row.email || row.correo || "",
       notes: row.notes || row.notas || "",
     }));

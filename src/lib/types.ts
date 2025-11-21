@@ -21,6 +21,9 @@ export interface Supplier {
   otif_pct: number;
   risk_score_1_5: number;
   payment_terms_days: number;
+  early_payment_discount_pct: number;
+  tax_compliance_score_1_5: number;
+  cash_flow_impact_days: number;
   contact_email: string;
   contact_phone?: string;
   contact_website?: string;
