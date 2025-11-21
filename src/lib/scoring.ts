@@ -19,6 +19,10 @@ export const KPI_DEFINITIONS = {
   capacity_units_month: { label: 'Capacidad', type: 'benefit' as const },
   moq: { label: 'MOQ', type: 'cost' as const },
   risk_score_1_5: { label: 'Riesgo', type: 'cost' as const },
+  payment_terms_days: { label: 'Términos de Pago', type: 'cost' as const },
+  early_payment_discount_pct: { label: 'Descuento Pronto Pago', type: 'benefit' as const },
+  tax_compliance_score_1_5: { label: 'Compliance Fiscal', type: 'benefit' as const },
+  cash_flow_impact_days: { label: 'Impacto Flujo Caja', type: 'cost' as const },
 };
 
 export type KPIKey = keyof typeof KPI_DEFINITIONS;
@@ -173,6 +177,10 @@ export function getPresetWeights(preset: string): { activeKpis: KPIKey[]; weight
     balanced: {
       activeKpis: ['unit_cost', 'quality_score_1_5', 'service_score_1_5', 'lead_time_days', 'otif_pct', 'sustainability_score_1_5'],
       weights: { unit_cost: 20, quality_score_1_5: 20, service_score_1_5: 20, lead_time_days: 15, otif_pct: 15, sustainability_score_1_5: 10 },
+    },
+    cash_flow: {
+      activeKpis: ['payment_terms_days', 'cash_flow_impact_days', 'early_payment_discount_pct', 'tax_compliance_score_1_5', 'unit_cost'],
+      weights: { payment_terms_days: 30, cash_flow_impact_days: 25, early_payment_discount_pct: 20, tax_compliance_score_1_5: 15, unit_cost: 10 },
     },
   };
 
